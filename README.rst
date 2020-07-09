@@ -129,8 +129,8 @@ The Client initialization requires root URL for a required API.
 App Shutdown
 ------------
 
-The api client support graceful shutdown. `await client.shutdown()` when you are finishing your app
-(not necessary).
+The api client support graceful shutdown. Run `await client.shutdown()` when
+you are finishing your app (not necessary).
 
 
 Middlewares
