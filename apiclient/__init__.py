@@ -6,7 +6,7 @@ from .api import APIDescriptor
 from .backends import BACKENDS
 
 
-__version__ = "0.0.0"
+__version__ = "0.0.1"
 __license__ = "MIT"
 
 
