@@ -1,7 +1,7 @@
 import re
 from os import path as op
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def _read(fname):
@@ -20,7 +20,7 @@ setup(
     description="Simple Asyncio Client for any HTTP API",
     long_description=_read('README.rst'),
 
-    packages=['apiclient'],
+    packages=find_packages(exclude=('tests',)),
 
     author='Kirill Klenov',
     author_email='horneds@gmail.com',
