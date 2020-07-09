@@ -61,7 +61,7 @@ Github API (https://developer.github.com/v4/):
 
     # Read information about the current repository
     repo = await client.api.repos.klen['aio-apiclient'].get()
-    print(repo)  # dict parsed from Github Response JSON
+    print(repo)
 
 
 Slack API (https://api.slack.com/web):
