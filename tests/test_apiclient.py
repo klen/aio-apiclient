@@ -35,9 +35,21 @@ async def test_client():
     assert client.defaults
     assert client.Error
 
+    ts = 12345
+
+    @client.middleware
+    async def insert_timestamp(method, url, options):
+        options.setdefault('headers', {})
+        options['headers']['X-Timestamp'] = str(ts)
+        return method, url, options
+
     res = await client.api.users.octocat.orgs()
     assert res
-    backend.request.assert_awaited()
+    backend.request.assert_awaited_with(
+        'GET', 'https://api.github.com/users/octocat/orgs',
+        raise_for_status=True, read_response_body=True, parse_response_body=True,
+        headers={'Authorization': 'Bearer TOKEN', 'X-Timestamp': str(ts)}
+    )
 
 
 def test_sync_initialization():
@@ -68,7 +80,7 @@ async def test_httpx():
 
     res = await client.api.repos.klen['aio-apiclient']()
     assert res
-    assert res['id']
+    assert res['id'] == 278361832
     assert res['full_name'] == 'klen/aio-apiclient'
 
 
@@ -87,5 +99,5 @@ async def test_aiohttp():
 
     res = await client.api.repos.klen['aio-apiclient']()
     assert res
-    assert res['id']
+    assert res['id'] == 278361832
     assert res['full_name'] == 'klen/aio-apiclient'

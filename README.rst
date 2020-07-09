@@ -87,6 +87,71 @@ Slack API (https://api.slack.com/web):
 
 And etc
 
+Usage
+=====
+
+Initialization
+--------------
+
+The Client initialization requires root URL for a required API.
+
+.. code:: python
+
+    from apiclient import APIClient
+
+    client = APIClient(
+
+        # Root URL for any API (required)
+        'https://api.github.com',
+
+        # Raise `client.Error` for any response with status code > 400
+        raise_for_status=True,
+
+        # Set to `False` if you only want to make a request and doesn't care about responses
+        read_response_body=True,
+
+        # Parse response's body content-type and return JSON/TEXT/Form data instead the response itself
+
+        # Set total timeout in seconds
+        timeout=10.0,
+
+        # Set backend for making requests (apiclient.backends.BackendHTTPX,
+        # apiclient.backends.BackendAIOHTTP) by default first available would be
+        # choosen
+
+        backend=None,
+
+        # Default backend options to use with every request (headers, params, data, ...)
+        # ...
+
+    )
+
+App Shutdown
+------------
+
+The api client support graceful shutdown. `await client.shutdown()` when you are finishing your app
+(not necessary).
+
+
+Middlewares
+-----------
+
+You are able to dinamically change request params (method, url, other backend params) using middlewares.
+
+.. code:: python
+
+    import time
+    from apiclient import APIClient
+
+    client = APIClient('https://api.github.com')
+
+    @client.middleware
+    async def insert_timestamp_header(method, url, options):
+        options.setdefault('headers', {})
+        options['headers']['X-Timestamp'] = str(time.time())
+        return method, url, options
+
+
 .. _bugtracker:
 
 Bug tracker
