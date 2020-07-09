@@ -3,7 +3,7 @@ aio-apiclient
 
 .. _description:
 
-aio-apiclient -- Simple Asyncio Client for any HTTP API
+aio-apiclient -- Simple Asyncio Client for any HTTP APIs
 
 .. _badges:
 
@@ -15,12 +15,14 @@ aio-apiclient -- Simple Asyncio Client for any HTTP API
     :target: https://pypi.org/project/aio-apiclient/
     :alt: PYPI Version
 
-.. _motivation:
+.. _features:
 
-Motivation
-==========
+Features
+========
 
-Create an universal usable client for any HTTP API.
+- Convenient work with any HTTP API
+- Supports `httpx` and `aiohttp` as backends to make requests
+- Very configurable
 
 .. _contents:
 
@@ -44,9 +46,45 @@ Installation
 
 .. _usage:
 
-Usage
-=====
+QuickStart
+==========
 
+Github API (https://developer.github.com/v4/):
+
+.. _code: python
+
+    from apiclient import APIClient
+
+    client = APIClient('https://api.github.com', headers={
+            'Authorization': 'token OAUTH-TOKEN'
+    })
+
+    # Read information about the current repository
+    repo = await client.api.repos.klen['aio-apiclient'].get()
+    print repo
+
+
+Slack API (https://api.slack.com/web):
+
+.. _code: python
+
+    from apiclient import APIClient
+
+    client = APIClient('https://api.github.com', headers={
+        'Authorization': 'token OAUTH-TOKEN'
+    })
+
+    # Update current user status (we don't care about this response)
+    await client.api['users.profile.set'].post(json={
+        'profile': {
+            'status_text': 'working',
+            'status_emoji': ':computer:'
+            'status_expiration': 30,
+        }
+    }, read_response_body=False)
+
+
+And etc
 
 .. _bugtracker:
 
