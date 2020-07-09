@@ -1,0 +1,41 @@
+import httpx
+
+from . import ABCBackend
+
+
+class BackendHTTPX(ABCBackend):
+
+    Error = httpx.HTTPError
+
+    def __init__(self, client=None, **options):
+        self.client = client or httpx.AsyncClient(**options)
+
+    async def shutdown(self):
+        self.client.close()
+
+    async def request(self, method, url, *,
+                      raise_for_status=True, read_response_body=True, parse_response_body=True,
+                      **options):
+
+        async with self.client.stream(method, url, **options) as response:
+
+            if raise_for_status:
+                response.raise_for_status()
+
+            if read_response_body:
+                body = await response.aread()
+                if parse_response_body:
+                    response = self.parse_response(response, body)
+
+            return response
+
+    def parse_response(self, response, body):
+        """Parse body for given response by content-type.
+
+        :returns: parsed body
+        """
+        ct = response.headers.get('content-type', '')
+        if ct.startswith('application/json'):
+            return response.json()
+
+        return body.decode(response.encoding)
