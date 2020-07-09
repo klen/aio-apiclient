@@ -20,9 +20,10 @@ aio-apiclient -- Simple Asyncio Client for any HTTP APIs
 Features
 ========
 
-- Convenient work with any HTTP API
+- Convenient work with any HTTP API (especially with REST)
 - Supports `httpx` and `aiohttp` as backends to make requests
-- Very configurable
+- Very configurable and usable
+- An ability to parse responses automatically
 
 .. _contents:
 
