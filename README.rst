@@ -51,7 +51,7 @@ QuickStart
 
 Github API (https://developer.github.com/v4/):
 
-.. _code: python
+.. code:: python
 
     from apiclient import APIClient
 
@@ -61,12 +61,12 @@ Github API (https://developer.github.com/v4/):
 
     # Read information about the current repository
     repo = await client.api.repos.klen['aio-apiclient'].get()
-    print(repo)
+    print(repo)  # dict parsed from Github Response JSON
 
 
 Slack API (https://api.slack.com/web):
 
-.. _code: python
+.. code:: python
 
     from apiclient import APIClient
 
