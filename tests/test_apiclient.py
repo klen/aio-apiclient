@@ -62,13 +62,14 @@ async def test_httpx():
     with pytest.raises(client.Error):
         await client.api.users.klen.raise404()
 
-    res = await client.api.repos.klen.modconfig(raise_for_status=False, parse_response_body=False)
+    res = await client.api.repos.klen['aio-apiclient'](
+        raise_for_status=False, parse_response_body=False)
     assert res.status_code == 200
 
-    res = await client.api.repos.klen.modconfig()
+    res = await client.api.repos.klen['aio-apiclient']()
     assert res
     assert res['id']
-    assert res['full_name'] == 'klen/modconfig'
+    assert res['full_name'] == 'klen/aio-apiclient'
 
 
 async def test_aiohttp():
@@ -81,10 +82,10 @@ async def test_aiohttp():
     with pytest.raises(client.Error):
         await client.api.users.klen.raise404()
 
-    res = await client.api.repos.klen.modconfig(parse_response_body=False)
+    res = await client.api.repos.klen['aio-apiclient'](parse_response_body=False)
     assert res.status == 200
 
-    res = await client.api.repos.klen.modconfig()
+    res = await client.api.repos.klen['aio-apiclient']()
     assert res
     assert res['id']
-    assert res['full_name'] == 'klen/modconfig'
+    assert res['full_name'] == 'klen/aio-apiclient'
