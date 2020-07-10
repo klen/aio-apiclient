@@ -20,7 +20,13 @@ class BackendHTTPX(ABCBackend):
         async with self.client.stream(method, url, **options) as response:
 
             if raise_for_status:
-                response.raise_for_status()
+                try:
+                    response.raise_for_status()
+                except self.Error:
+                    if read_response_body:
+                        await response.aread()
+
+                    raise
 
             if read_response_body:
                 body = await response.aread()
