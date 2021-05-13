@@ -11,10 +11,10 @@ class BackendHTTPX(ABCBackend):
         self.client = client or httpx.AsyncClient(**options)
 
     async def shutdown(self):
-        self.client.close()
+        await self.client.aclose()
 
-    async def request(self, method, url, *,
-                      raise_for_status=True, read_response_body=True, parse_response_body=True,
+    async def request(self, method: str, url: str, *, raise_for_status: bool = True,
+                      read_response_body: bool = True, parse_response_body: bool = True,
                       **options):
 
         async with self.client.stream(method, url, **options) as response:

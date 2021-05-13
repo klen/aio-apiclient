@@ -4,10 +4,10 @@ import pytest
 
 
 def test_descriptor():
-    from apiclient.api import APIDescriptor
+    from apiclient.api import HTTPDescriptor
 
     request = mock.MagicMock()
-    api = APIDescriptor(request)
+    api = HTTPDescriptor(request)
     assert api
     assert api.users != api.users
 
@@ -20,6 +20,17 @@ def test_descriptor():
 
     api.users[42].put(method="POST", data={'login': 'updated'})
     request.assert_called_with('POST', '/users/42/put', data={'login': 'updated'})
+
+
+def test_sync_initialization():
+    from apiclient import APIClient
+    from apiclient.backends import BackendAIOHTTP
+
+    client = APIClient('https://api.github.com')
+    assert client
+
+    client = APIClient('https://api.github.com', backend=BackendAIOHTTP())
+    assert client
 
 
 async def test_client():
@@ -52,17 +63,6 @@ async def test_client():
     )
 
 
-def test_sync_initialization():
-    from apiclient import APIClient
-    from apiclient.backends import BackendAIOHTTP
-
-    client = APIClient('https://api.github.com')
-    assert client
-
-    client = APIClient('https://api.github.com', backend=BackendAIOHTTP())
-    assert client
-
-
 async def test_httpx():
     """FIXME: makes real requests to Github API."""
     from apiclient import APIClient
@@ -83,7 +83,10 @@ async def test_httpx():
     assert res['id'] == 278361832
     assert res['full_name'] == 'klen/aio-apiclient'
 
+    await client.shutdown()
 
+
+@pytest.mark.parametrize('aiolib', ['asyncio'])
 async def test_aiohttp():
     """FIXME: makes real requests to Github API."""
     from apiclient import APIClient
@@ -101,3 +104,5 @@ async def test_aiohttp():
     assert res
     assert res['id'] == 278361832
     assert res['full_name'] == 'klen/aio-apiclient'
+
+    await client.shutdown()

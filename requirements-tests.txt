@@ -1,6 +1,0 @@
-pytest
-pytest-asyncio
-aiohttp
-httpx
-
--e .

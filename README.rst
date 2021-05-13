@@ -3,7 +3,7 @@ aio-apiclient
 
 .. _description:
 
-aio-apiclient -- Simple Asyncio Client for any HTTP APIs
+aio-apiclient -- Async helper to work with HTTP APIs
 
 .. _badges:
 
@@ -34,7 +34,7 @@ Features
 Requirements
 =============
 
-- python >= 3.4
+- python >= 3.7
 
 .. _installation:
 

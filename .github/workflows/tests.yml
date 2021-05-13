@@ -11,20 +11,35 @@ on:
     branches: [master, develop]
 
 jobs:
-  build:
-
+  tests:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
 
     steps:
     - name: Checkout changes
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2.3.4
 
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2.2.2
       with:
-        python-version: 3.8
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache env
+      id: cache-env
+      uses: actions/cache@v2.1.5
+      with:
+        path: env
+        key: env-${{ matrix.python-version }}-${{ hashFiles('setup.cfg') }}
+
+    - name: Install dependencies
+      run: |
+        python -m venv env
+        env/bin/pip install .[tests]
+      if: steps.cache-env.outputs.cache-hit != 'true'
 
     - name: Test with pytest
-      run: |
-        make test
+      run: env/bin/pytest tests.py
 
