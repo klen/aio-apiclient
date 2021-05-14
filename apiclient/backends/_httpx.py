@@ -7,6 +7,8 @@ from . import ABCBackend
 class BackendHTTPX(ABCBackend):
     """Support httpx."""
 
+    name = 'httpx'
+
     Error = httpx.HTTPError
 
     def __init__(self, client: httpx.AsyncClient = None, **options):

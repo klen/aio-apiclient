@@ -24,13 +24,17 @@ def test_descriptor():
 
 def test_sync_initialization():
     from apiclient import APIClient
-    from apiclient.backends import BackendAIOHTTP
+    from apiclient.backends import BackendAIOHTTP, BackendHTTPX
 
     client = APIClient('https://api.github.com')
-    assert client
+    assert isinstance(client.backend, BackendHTTPX)
 
-    client = APIClient('https://api.github.com', backend=BackendAIOHTTP())
+    client = APIClient('https://api.github.com', backend='httpx')
+    assert isinstance(client.backend, BackendHTTPX)
+
+    client = APIClient('https://api.github.com', backend=BackendAIOHTTP)
     assert client
+    assert isinstance(client.backend, BackendAIOHTTP)
 
 
 async def test_client():
@@ -38,13 +42,15 @@ async def test_client():
 
     backend = mock.AsyncMock()
 
-    client = APIClient('https://api.github.com', backend=backend, headers={
+    client = APIClient('https://api.github.com', headers={
         'Authorization': 'Bearer TOKEN'
     })
     assert client
     assert client.api
     assert client.defaults
     assert client.Error
+
+    client.backend = backend
 
     ts = 12345
 
@@ -92,7 +98,7 @@ async def test_aiohttp():
     from apiclient import APIClient
     from apiclient.backends import BackendAIOHTTP
 
-    client = APIClient('https://api.github.com', backend=BackendAIOHTTP(timeout=10))
+    client = APIClient('https://api.github.com', backend=BackendAIOHTTP)
 
     with pytest.raises(client.Error):
         await client.api.users.klen.raise404()

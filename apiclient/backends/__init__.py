@@ -7,6 +7,12 @@ import abc
 class ABCBackend(abc.ABC):
     """Base class for backends."""
 
+    @property
+    @abc.abstractmethod
+    def name(self):
+        """Backend should have a name."""
+        pass
+
     def __init__(self, client: t.Any = None, timeout: int = None, **client_options):
         """Initialize the backend."""
         pass
@@ -14,7 +20,7 @@ class ABCBackend(abc.ABC):
     def __init_subclass__(cls, *args, **kwargs):
         """Register a backend."""
         super().__init_subclass__(*args, **kwargs)
-        BACKENDS.append(cls)
+        BACKENDS[cls.name] = cls
 
     class Error(Exception):
         """Client exception."""
@@ -37,7 +43,7 @@ class ABCBackend(abc.ABC):
         pass
 
 
-BACKENDS: t.List[t.Type[ABCBackend]] = []
+BACKENDS: t.Dict[str, t.Type[ABCBackend]] = {}
 
 
 try:

@@ -8,6 +8,8 @@ from . import ABCBackend
 class BackendAIOHTTP(ABCBackend):
     """Support aiohttp."""
 
+    name = 'aiohttp'
+
     Error = aiohttp.client_exceptions.ClientError
 
     def __init__(self, client: aiohttp.ClientSession = None, timeout: int = None, **options):
