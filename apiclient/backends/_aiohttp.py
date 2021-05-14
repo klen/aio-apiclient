@@ -1,3 +1,5 @@
+import typing as t
+
 import aiohttp
 
 from . import ABCBackend
@@ -29,7 +31,7 @@ class BackendAIOHTTP(ABCBackend):
 
     async def request(self, method: str, url: str, *, raise_for_status: bool = True,
                       read_response_body: bool = True, parse_response_body: bool = True,
-                      **options):
+                      **options) -> aiohttp.ClientResponse:
         """Make a request."""
         async with self.client.request(method, url, **options) as response:
 
@@ -45,7 +47,7 @@ class BackendAIOHTTP(ABCBackend):
 
             return response
 
-    def parse_response(cls, response):
+    def parse_response(cls, response: aiohttp.ClientResponse) -> t.Any:
         """Parse body for given response by content-type.
 
         :returns: a coroutine
@@ -55,9 +57,6 @@ class BackendAIOHTTP(ABCBackend):
             try:
                 return response.json()
             except ValueError:
-                return response.text()
-
-        if ct.startswith('application/x-www-form-urlencoded') or ct.startswith('multipart'):
-            return response.post()
+                pass
 
         return response.text()

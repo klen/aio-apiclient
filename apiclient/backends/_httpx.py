@@ -1,22 +1,26 @@
 import httpx
+import typing as t
 
 from . import ABCBackend
 
 
 class BackendHTTPX(ABCBackend):
+    """Support httpx."""
 
     Error = httpx.HTTPError
 
-    def __init__(self, client=None, **options):
+    def __init__(self, client: httpx.AsyncClient = None, **options):
+        """Initialize HTTPX Client."""
         self.client = client or httpx.AsyncClient(**options)
 
     async def shutdown(self):
+        """Shutdown the client."""
         await self.client.aclose()
 
     async def request(self, method: str, url: str, *, raise_for_status: bool = True,
                       read_response_body: bool = True, parse_response_body: bool = True,
-                      **options):
-
+                      **options) -> httpx.Response:
+        """Make a request."""
         async with self.client.stream(method, url, **options) as response:
 
             if raise_for_status:
@@ -35,7 +39,7 @@ class BackendHTTPX(ABCBackend):
 
             return response
 
-    def parse_response(self, response, body):
+    def parse_response(self, response: httpx.Response, body: t.Any) -> t.Any:
         """Parse body for given response by content-type.
 
         :returns: parsed body
