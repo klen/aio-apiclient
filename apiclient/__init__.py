@@ -35,11 +35,11 @@ class APIClient:
         if not self.backend:
             raise RuntimeError('httpx or aiohttp must be installed to use aio-apiclient')
 
-    async def startup(self):
+    async def startup(self, *args):
         """Startup the backend."""
         await self.backend.startup()
 
-    async def shutdown(self):
+    async def shutdown(self, *args):
         """Shutdown the backend."""
         await self.backend.shutdown()
 
