@@ -3,7 +3,6 @@
 import typing as t
 import copy
 import inspect
-import logging
 
 from .api import HTTPDescriptor
 from .backends import BACKENDS, ABCBackend
@@ -11,9 +10,6 @@ from .backends import BACKENDS, ABCBackend
 
 __version__ = "0.2.0"
 __license__ = "MIT"
-
-
-logger = logging.getLogger('apiclient')
 
 
 class APIClient:
