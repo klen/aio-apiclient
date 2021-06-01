@@ -115,11 +115,11 @@ The Client initialization requires root URL for a required API.
         # Set total timeout in seconds
         timeout=10.0,
 
-        # Set backend for making requests (apiclient.backends.BackendHTTPX,
+        # Set backend type for making requests (apiclient.backends.BackendHTTPX,
         # apiclient.backends.BackendAIOHTTP) by default first available would be
         # choosen
 
-        backend=None,
+        backend_type=None,
 
         # Default backend options to use with every request (headers, params, data, ...)
         # ...

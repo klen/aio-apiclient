@@ -29,10 +29,10 @@ def test_sync_initialization():
     client = APIClient('https://api.github.com')
     assert isinstance(client.backend, BackendHTTPX)
 
-    client = APIClient('https://api.github.com', backend='httpx')
+    client = APIClient('https://api.github.com', backend_type='httpx')
     assert isinstance(client.backend, BackendHTTPX)
 
-    client = APIClient('https://api.github.com', backend=BackendAIOHTTP)
+    client = APIClient('https://api.github.com', backend_type=BackendAIOHTTP)
     assert client
     assert isinstance(client.backend, BackendAIOHTTP)
 
@@ -98,7 +98,7 @@ async def test_aiohttp():
     from apiclient import APIClient
     from apiclient.backends import BackendAIOHTTP
 
-    client = APIClient('https://api.github.com', backend=BackendAIOHTTP)
+    client = APIClient('https://api.github.com', backend_type=BackendAIOHTTP)
 
     with pytest.raises(client.Error):
         await client.api.users.klen.raise404()

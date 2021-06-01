@@ -18,19 +18,18 @@ class APIClient:
     def __init__(
             self, root: str, *, raise_for_status: bool = True, read_response_body: bool = True,
             parse_response_body: bool = True, timeout: int = 10,
-            backend: t.Union[str, t.Type[ABCBackend]] = None, **defaults):
+            backend_type: t.Union[str, t.Type[ABCBackend]] = list(BACKENDS.values())[0],
+            backend_options: t.Dict = None, **defaults):
         """Initialize the client."""
         self.root = root.rstrip('/')
         self.raise_for_status = raise_for_status
         self.read_response_body = read_response_body
         self.parse_response_body = parse_response_body
         self.defaults = defaults
-        if backend is None:
-            backend = list(BACKENDS.values())[0]
-        elif isinstance(backend, str):
-            backend = BACKENDS[backend]
+        if isinstance(backend_type, str):
+            backend_type = BACKENDS[backend_type]
 
-        self.backend = backend(timeout=timeout)
+        self.backend = backend_type(timeout=timeout, **(backend_options or {}))
         self.middlewares: t.List[t.Callable[..., t.Awaitable]] = []
         if not self.backend:
             raise RuntimeError('httpx or aiohttp must be installed to use aio-apiclient')
