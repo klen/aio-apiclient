@@ -60,8 +60,8 @@ class APIClient:
         self.middlewares.insert(0, corofunc)
         return corofunc
 
-    async def request(self, method: str, url: str, **options):
-        """Do HTTP request."""
+    async def request(self, method: str, url: str, **options) -> t.Awaitable:
+        """Prepare and do HTTP request."""
         # Process defaults
         for opt, val in self.defaults.items():
             if opt not in options:
@@ -77,11 +77,13 @@ class APIClient:
         for middleware in self.middlewares:
             method, url, options = await middleware(method, url, options)
 
-        res = await self.backend.request(
+        return await self.__request(method, url, **options)
+
+    async def __request(self, method: str, url: str, **options):
+        """Do HTTP request."""
+        return await self.backend.request(
             method, url,
             raise_for_status=options.pop('raise_for_status', self.raise_for_status),
             read_response_body=options.pop('read_response_body', self.read_response_body),
             parse_response_body=options.pop('parse_response_body', self.parse_response_body),
             **options)
-
-        return res
