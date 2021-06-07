@@ -8,7 +8,7 @@ from .api import HTTPDescriptor
 from .backends import BACKENDS, ABCBackend
 
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __license__ = "MIT"
 
 
