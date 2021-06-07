@@ -21,6 +21,9 @@ def test_descriptor():
     api.users[42].put(method="POST", data={'login': 'updated'})
     request.assert_called_with('POST', '/users/42/put', data={'login': 'updated'})
 
+    api.users[42].post({'test': 'ok'})
+    request.assert_called_with('POST', '/users/42', data={'test': 'ok'})
+
 
 def test_sync_initialization():
     from apiclient import APIClient

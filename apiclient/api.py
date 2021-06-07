@@ -46,8 +46,11 @@ class HTTPDescriptor:
         """Internal representation."""
         return f"URL: {self}"
 
-    def __call__(self, method=None, **options):
+    def __call__(self, body=None, *, method: str = None, **options):
         """Prepare a request."""
         method, url = self.__render__(method)
+
+        if body:
+            options.setdefault('data', body)
 
         return self.__request(method, url, **options)
