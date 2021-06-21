@@ -24,6 +24,9 @@ def test_descriptor():
     api.users[42].post({'test': 'ok'})
     request.assert_called_with('POST', '/users/42', data={'test': 'ok'})
 
+    api.users[42]['/custom/path']()
+    request.assert_called_with('GET', '/users/42/custom/path')
+
 
 def test_sync_initialization():
     from apiclient import APIClient
