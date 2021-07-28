@@ -11,8 +11,11 @@ class BackendHTTPX(ABCBackend):
 
     Error = httpx.HTTPError
 
-    def __init__(self, client: httpx.AsyncClient = None, **options):
+    def __init__(self, client: httpx.AsyncClient = None, uds: str = None, **options):
         """Initialize HTTPX Client."""
+        if uds:
+            options['transport'] = httpx.AsyncHTTPTransport(uds=uds)
+
         self.client = client or httpx.AsyncClient(**options)
 
     async def shutdown(self):

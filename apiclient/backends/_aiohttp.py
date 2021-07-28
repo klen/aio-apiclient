@@ -12,10 +12,14 @@ class BackendAIOHTTP(ABCBackend):
 
     Error = aiohttp.client_exceptions.ClientError
 
-    def __init__(self, client: aiohttp.ClientSession = None, timeout: int = None, **options):
+    def __init__(self, client: aiohttp.ClientSession = None,
+                 timeout: int = None, uds: str = None, **options):
         """Initialize the client."""
         if timeout:
             options['timeout'] = aiohttp.ClientTimeout(total=timeout)
+
+        if uds:
+            options['connector'] = aiohttp.UnixConnector(path=uds)
 
         self._client = client
         self._options = options

@@ -1,6 +1,17 @@
 import unittest.mock as mock
 
+import asyncio
+import aiohttp
+import httpx
 import pytest
+from yarl import URL
+
+
+@pytest.fixture
+def mock_httpx():
+    with mock.patch('httpx.AsyncClient.send') as mocked:
+        mocked.return_value = httpx.Response(200, request=httpx.Request('GET', '/'), text='httpx')
+        yield mocked
 
 
 def test_descriptor():
@@ -96,6 +107,14 @@ async def test_httpx():
     assert res['full_name'] == 'klen/aio-apiclient'
 
     await client.shutdown()
+
+
+async def test_uds_httpx(mock_httpx):
+    from apiclient import APIClient
+
+    client = APIClient('uds:///var/run/docker.sock')
+    res = await client.api.containers.json()
+    assert res
 
 
 @pytest.mark.parametrize('aiolib', ['asyncio'])

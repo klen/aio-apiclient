@@ -3,6 +3,7 @@
 import typing as t
 import copy
 import inspect
+from urllib.parse import urlparse
 
 from .api import HTTPDescriptor
 from .backends import BACKENDS, ABCBackend
@@ -17,10 +18,15 @@ class APIClient:
 
     def __init__(
             self, root: str, *, raise_for_status: bool = True, read_response_body: bool = True,
-            parse_response_body: bool = True, timeout: int = 10,
+            parse_response_body: bool = True, timeout: int = 10, uds: str = None,
             backend_type: t.Union[str, t.Type[ABCBackend]] = list(BACKENDS.values())[0],
             backend_options: t.Dict = None, **defaults):
         """Initialize the client."""
+        url = urlparse(root)
+        if url.scheme == 'uds':
+            uds = url.path
+            root = 'http://socket'
+
         self.root = root.rstrip('/')
         self.raise_for_status = raise_for_status
         self.read_response_body = read_response_body
@@ -29,10 +35,14 @@ class APIClient:
         if isinstance(backend_type, str):
             backend_type = BACKENDS[backend_type]
 
-        self.backend = backend_type(timeout=timeout, **(backend_options or {}))
+        self.backend = backend_type(timeout=timeout, uds=uds, **(backend_options or {}))
         self.middlewares: t.List[t.Callable[..., t.Awaitable]] = []
         if not self.backend:
             raise RuntimeError('httpx or aiohttp must be installed to use aio-apiclient')
+
+    def __repr__(self):
+        """Represent the client."""
+        return f"<APIClient {self.root}>"
 
     async def startup(self, *args):
         """Startup the backend."""
