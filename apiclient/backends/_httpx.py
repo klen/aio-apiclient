@@ -44,7 +44,7 @@ class BackendHTTPX(ABCBackend):
 
             return response
 
-    def parse_response(self, response: httpx.Response, body: t.Any) -> t.Any:
+    def parse_response(self, response: httpx.Response, body: bytes) -> t.Any:
         """Parse body for given response by content-type.
 
         :returns: parsed body
@@ -53,4 +53,4 @@ class BackendHTTPX(ABCBackend):
         if ct.startswith('application/json'):
             return response.json()
 
-        return body.decode(response.encoding)
+        return body.decode(response.encoding or 'utf-8')
