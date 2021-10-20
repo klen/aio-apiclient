@@ -72,6 +72,7 @@ class APIClient:
 
     async def request(self, method: str, url: str, **options) -> t.Awaitable:
         """Prepare and do HTTP request."""
+
         # Process defaults
         for opt, val in self.defaults.items():
             if opt not in options:

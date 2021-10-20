@@ -1,10 +1,12 @@
-import unittest.mock as mock
 
-import asyncio
-import aiohttp
 import httpx
 import pytest
-from yarl import URL
+
+# Support Python < 3.8
+try:
+    import mock  # type: ignore
+except ImportError:
+    import unittest.mock as mock  # type: ignore
 
 
 @pytest.fixture

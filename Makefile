@@ -1,6 +1,6 @@
 VIRTUAL_ENV ?= env
 
-$(VIRTUAL_ENV): setup.cfg
+$(VIRTUAL_ENV): requirements/requirements-tests.txt
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
 	@$(VIRTUAL_ENV)/bin/pip install -e .[tests]
 	@touch $(VIRTUAL_ENV)

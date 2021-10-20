@@ -15,6 +15,10 @@ aio-apiclient -- Async helper to work with HTTP APIs
     :target: https://pypi.org/project/aio-apiclient/
     :alt: PYPI Version
 
+.. image:: https://img.shields.io/pypi/pyversions/aio-apiclient
+    :target: https://pypi.org/project/aio-apiclient/
+    :alt: Python Versions
+
 .. _features:
 
 Features

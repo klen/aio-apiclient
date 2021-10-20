@@ -26,8 +26,8 @@ class BackendHTTPX(ABCBackend):
                       read_response_body: bool = True, parse_response_body: bool = True,
                       **options) -> httpx.Response:
         """Make a request."""
-        async with self.client.stream(method, url, **options) as response:
-
+        client = self.client
+        async with client.stream(method, url, **options) as response:
             if raise_for_status:
                 try:
                     response.raise_for_status()

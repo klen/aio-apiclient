@@ -1,0 +1,6 @@
+aiohttp
+httpx
+mock; python_version < "3.8"
+pytest
+pytest-aio[curio,trio] >= 1.4.0
+pytest-mypy
