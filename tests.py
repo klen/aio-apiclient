@@ -96,6 +96,15 @@ async def test_client():
     )
 
 
+async def test_uds_httpx(mock_httpx):
+    from apiclient import APIClient
+
+    client = APIClient('uds:///var/run/docker.sock')
+    res = await client.api.containers.json()
+    assert res
+
+
+@pytest.mark.parametrize('aiolib', ['asyncio', 'trio'])
 async def test_httpx():
     """FIXME: makes real requests to Github API."""
     from apiclient import APIClient
@@ -118,14 +127,6 @@ async def test_httpx():
     assert res['full_name'] == 'klen/aio-apiclient'
 
     await client.shutdown()
-
-
-async def test_uds_httpx(mock_httpx):
-    from apiclient import APIClient
-
-    client = APIClient('uds:///var/run/docker.sock')
-    res = await client.api.containers.json()
-    assert res
 
 
 @pytest.mark.parametrize('aiolib', ['asyncio'])
