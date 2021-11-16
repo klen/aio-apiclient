@@ -41,6 +41,14 @@ def test_descriptor():
     request.assert_called_with('GET', '/users/42/custom/path')
 
 
+def test_no_backends_installed(monkeypatch):
+    import apiclient
+
+    monkeypatch.setattr(apiclient, 'BACKENDS', [])
+    with pytest.raises(RuntimeError):
+        apiclient.APIClient('https://api.github.com')
+
+
 def test_sync_initialization():
     from apiclient import APIClient
     from apiclient.backends import BackendAIOHTTP, BackendHTTPX
@@ -102,6 +110,7 @@ async def test_httpx():
     res = await client.api.repos.klen['aio-apiclient'](
         raise_for_status=False, parse_response_body=False)
     assert res.status_code == 200
+    assert res.json()
 
     res = await client.api.repos.klen['aio-apiclient']()
     assert res

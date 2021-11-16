@@ -49,6 +49,18 @@ Installation
 
     pip install aio-apiclient
 
+Please note that **aio-apiclient** requires any of supported http backends
+(aiohttp, httpx) to be installed in order for it to work.
+
+You may optionally install the requirements with the library: ::
+
+    # For httpx
+    pip install aio-apiclient[httpx]
+
+    # For aiohttp
+    pip install aio-apiclient[aiohttp]
+
+
 .. _usage:
 
 QuickStart
@@ -60,6 +72,7 @@ Github API (https://developer.github.com/v4/):
 
     from apiclient import APIClient
 
+    # First available backend (aiohttp, httpx) will be used
     client = APIClient('https://api.github.com', headers={
             'Authorization': 'token OAUTH-TOKEN'
     })

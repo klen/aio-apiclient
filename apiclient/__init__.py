@@ -19,7 +19,7 @@ class APIClient:
     def __init__(
             self, root: str, *, raise_for_status: bool = True, read_response_body: bool = True,
             parse_response_body: bool = True, timeout: int = 10, uds: str = None,
-            backend_type: t.Union[str, t.Type[ABCBackend]] = list(BACKENDS.values())[0],
+            backend_type: t.Union[str, t.Type[ABCBackend]] = None,
             backend_options: t.Dict = None, **defaults):
         """Initialize the client."""
         url = urlparse(root)
@@ -32,7 +32,12 @@ class APIClient:
         self.read_response_body = read_response_body
         self.parse_response_body = parse_response_body
         self.defaults = defaults
-        if isinstance(backend_type, str):
+        if backend_type is None:
+            if not BACKENDS:
+                raise RuntimeError('Please install any apiclient supported backend (httpx|aiohttp)')
+            backend_type, *_ = BACKENDS.values()
+
+        elif isinstance(backend_type, str):
             backend_type = BACKENDS[backend_type]
 
         self.backend = backend_type(timeout=timeout, uds=uds, **(backend_options or {}))
