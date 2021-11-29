@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 from apiclient.api import HTTPDescriptor
 from apiclient.backends import BACKENDS, ABCBackend
 
-__version__ = "1.6.1"
+__version__ = "1.6.2"
 __license__ = "MIT"
 
 
