@@ -8,7 +8,7 @@ from apiclient.api import HTTPDescriptor
 from apiclient.backends import BACKENDS, ABCBackend
 from apiclient.types import TMiddleware
 
-__version__ = "1.6.2"
+__version__ = "1.7.0"
 __license__ = "MIT"
 
 TVMiddleware = TypeVar("TVMiddleware", bound=TMiddleware)
