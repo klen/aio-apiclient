@@ -1,15 +1,17 @@
 """APIClient Implementation."""
 
 import copy
-import inspect
-import typing as t
+from typing import Dict, List, Optional, Type, TypeVar, Union
 from urllib.parse import urlparse
 
 from apiclient.api import HTTPDescriptor
 from apiclient.backends import BACKENDS, ABCBackend
+from apiclient.types import TMiddleware
 
 __version__ = "1.6.2"
 __license__ = "MIT"
+
+TVMiddleware = TypeVar("TVMiddleware", bound=TMiddleware)
 
 
 class APIClient:
@@ -19,13 +21,17 @@ class APIClient:
         self,
         root: str,
         *,
+        # Backends
+        backend_type: Optional[Union[str, Type[ABCBackend]]] = None,
+        backend_options: Optional[Dict] = None,
+        # Process responses
         raise_for_status: bool = True,
         read_response_body: bool = True,
         parse_response_body: bool = True,
+        # Request params
         timeout: int = 10,
-        uds: str = None,
-        backend_type: t.Union[str, t.Type[ABCBackend]] = None,
-        backend_options: t.Dict = None,
+        uds: Optional[str] = None,
+        # Default params
         **defaults,
     ):
         """Initialize the client."""
@@ -50,13 +56,13 @@ class APIClient:
             backend_type = BACKENDS[backend_type]
 
         self.backend = backend_type(timeout=timeout, uds=uds, **(backend_options or {}))
-        self.middlewares: t.List[t.Callable[..., t.Awaitable]] = []
+        self.middlewares: List[TMiddleware] = []
         if not self.backend:
             raise RuntimeError(
                 "httpx or aiohttp must be installed to use aio-apiclient"
             )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Represent the client."""
         return f"<APIClient {self.root}>"
 
@@ -74,17 +80,12 @@ class APIClient:
         return HTTPDescriptor(self.request)
 
     @property
-    def Error(self) -> t.Type[Exception]:
+    def Error(self) -> Type[Exception]:
         """Create API Descriptor."""
         return self.backend.Error
 
-    def middleware(self, corofunc: t.Callable[..., t.Awaitable]):
+    def middleware(self, corofunc: TVMiddleware) -> TVMiddleware:
         """Register the given middleware. Can be used as a decorator."""
-        if not inspect.iscoroutinefunction(corofunc):
-            raise ValueError(
-                'Middleware "%s" must be a coroutine function.' % corofunc.__name__
-            )
-
         self.middlewares.insert(0, corofunc)
         return corofunc
 
@@ -107,17 +108,27 @@ class APIClient:
 
         return await self.__request(method, url, **options)
 
-    async def __request(self, method: str, url: str, **options):
+    async def __request(
+        self,
+        method: str,
+        url: str,
+        read_response_body: Optional[bool] = None,
+        raise_for_status: Optional[bool] = None,
+        parse_response_body: Optional[bool] = None,
+        **options,
+    ):
         """Do HTTP request."""
-        return await self.backend.request(
+        return await self.backend.request(  # type: ignore
             method,
             url,
-            raise_for_status=options.pop("raise_for_status", self.raise_for_status),
-            read_response_body=options.pop(
-                "read_response_body", self.read_response_body
-            ),
-            parse_response_body=options.pop(
-                "parse_response_body", self.parse_response_body
-            ),
+            read_response_body=self.read_response_body
+            if read_response_body is None
+            else read_response_body,
+            raise_for_status=self.raise_for_status
+            if raise_for_status is None
+            else raise_for_status,
+            parse_response_body=self.parse_response_body
+            if parse_response_body is None
+            else parse_response_body,
             **options,
         )

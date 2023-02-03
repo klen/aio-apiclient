@@ -1,31 +1,38 @@
-import typing as t
+from contextlib import suppress
+from typing import Literal, Optional, Union, overload
 
 import aiohttp
 
+from ..types import TResponseBody
 from . import ABCBackend
 
 
 class BackendAIOHTTP(ABCBackend):
     """Support aiohttp."""
 
-    name = 'aiohttp'
+    name = "aiohttp"
 
     Error = aiohttp.client_exceptions.ClientError
 
-    def __init__(self, client: aiohttp.ClientSession = None,
-                 timeout: int = None, uds: str = None, **options):
+    def __init__(
+        self,
+        client: Optional[aiohttp.ClientSession] = None,
+        timeout: Optional[int] = None,
+        uds: Optional[str] = None,
+        **options
+    ):
         """Initialize the client."""
         if timeout:
-            options['timeout'] = aiohttp.ClientTimeout(total=timeout)
+            options["timeout"] = aiohttp.ClientTimeout(total=timeout)
 
         if uds:
-            options['connector'] = aiohttp.UnixConnector(path=uds)
+            options["connector"] = aiohttp.UnixConnector(path=uds)
 
         self._client = client
         self._options = options
 
     @property
-    def client(self):
+    def client(self) -> aiohttp.ClientSession:
         """Deferred client initialization."""
         if self._client is None:
             self._client = aiohttp.ClientSession(**self._options)
@@ -33,11 +40,35 @@ class BackendAIOHTTP(ABCBackend):
 
     async def shutdown(self):
         """Close the client."""
-        return await self.client.close()
+        await self.client.close()
 
-    async def request(self, method: str, url: str, *, raise_for_status: bool = True,
-                      read_response_body: bool = True, parse_response_body: bool = True,
-                      **options) -> aiohttp.ClientResponse:
+    @overload
+    async def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        read_response_body: Literal[True] = True,
+        **options
+    ) -> TResponseBody:
+        ...
+
+    @overload
+    async def request(
+        self, method: str, url: str, *, read_response_body: Literal[False], **options
+    ) -> aiohttp.ClientResponse:
+        ...
+
+    async def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        raise_for_status: bool = True,
+        read_response_body: bool = True,
+        parse_response_body: bool = True,
+        **options
+    ):
         """Make a request."""
         async with self.client.request(method, url, **options) as response:
 
@@ -46,23 +77,21 @@ class BackendAIOHTTP(ABCBackend):
 
             if read_response_body:
                 if parse_response_body:
-                    response = await self.parse_response(response)
+                    return await self.parse_response(response)
 
             else:
                 response.close()
 
             return response
 
-    def parse_response(cls, response: aiohttp.ClientResponse) -> t.Any:
+    async def parse_response(cls, response: aiohttp.ClientResponse) -> TResponseBody:
         """Parse body for given response by content-type.
 
         :returns: a coroutine
         """
-        ct = response.headers.get('content-type', '')
-        if ct.startswith('application/json'):
-            try:
-                return response.json()
-            except ValueError:
-                pass
+        ct = response.headers.get("content-type", "")
+        if ct.startswith("application/json"):
+            with suppress(ValueError):
+                return await response.json()
 
-        return response.text()
+        return await response.text()

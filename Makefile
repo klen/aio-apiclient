@@ -1,4 +1,4 @@
-VIRTUAL_ENV ?= env
+VIRTUAL_ENV ?= .venv
 
 $(VIRTUAL_ENV): requirements/requirements-tests.txt
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)

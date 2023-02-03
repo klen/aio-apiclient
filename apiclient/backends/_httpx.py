@@ -1,5 +1,8 @@
+from typing import Literal, Optional, Union, overload
+
 import httpx
-import typing as t
+
+from apiclient.types import TResponseBody
 
 from . import ABCBackend
 
@@ -7,14 +10,19 @@ from . import ABCBackend
 class BackendHTTPX(ABCBackend):
     """Support httpx."""
 
-    name = 'httpx'
+    name = "httpx"
 
     Error = httpx.HTTPError
 
-    def __init__(self, client: httpx.AsyncClient = None, uds: str = None, **options):
+    def __init__(
+        self,
+        client: Optional[httpx.AsyncClient] = None,
+        uds: Optional[str] = None,
+        **options
+    ):
         """Initialize HTTPX Client."""
         if uds:
-            options['transport'] = httpx.AsyncHTTPTransport(uds=uds)
+            options["transport"] = httpx.AsyncHTTPTransport(uds=uds)
 
         self.client = client or httpx.AsyncClient(**options)
 
@@ -22,9 +30,33 @@ class BackendHTTPX(ABCBackend):
         """Shutdown the client."""
         await self.client.aclose()
 
-    async def request(self, method: str, url: str, *, raise_for_status: bool = True,
-                      read_response_body: bool = True, parse_response_body: bool = True,
-                      **options) -> httpx.Response:
+    @overload
+    async def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        read_response_body: Literal[True] = True,
+        **options
+    ) -> TResponseBody:
+        ...
+
+    @overload
+    async def request(
+        self, method: str, url: str, *, read_response_body: Literal[False], **options
+    ) -> httpx.Response:
+        ...
+
+    async def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        raise_for_status: bool = True,
+        read_response_body: bool = True,
+        parse_response_body: bool = True,
+        **options
+    ):
         """Make a request."""
         client = self.client
         async with client.stream(method, url, **options) as response:
@@ -40,17 +72,17 @@ class BackendHTTPX(ABCBackend):
             if read_response_body:
                 body = await response.aread()
                 if parse_response_body:
-                    response = self.parse_response(response, body)
+                    return self.parse_response(response, body)
 
             return response
 
-    def parse_response(self, response: httpx.Response, body: bytes) -> t.Any:
+    def parse_response(self, response: httpx.Response, body: bytes) -> TResponseBody:
         """Parse body for given response by content-type.
 
         :returns: parsed body
         """
-        ct = response.headers.get('content-type', '')
-        if ct.startswith('application/json'):
+        ct = response.headers.get("content-type", "")
+        if ct.startswith("application/json"):
             return response.json()
 
-        return body.decode(response.encoding or 'utf-8')
+        return body.decode(response.encoding or "utf-8")

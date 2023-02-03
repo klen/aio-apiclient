@@ -1,6 +1,9 @@
 """Base abstract backend class."""
 import abc
-import typing as t
+from contextlib import suppress
+from typing import Any, Dict, Literal, Optional, Type, overload
+
+from apiclient.types import TResponseBody
 
 
 class ABCBackend(abc.ABC):
@@ -11,7 +14,7 @@ class ABCBackend(abc.ABC):
     def name(self):
         """Backend should have a name."""
 
-    def __init__(self, client: t.Any = None, timeout: int = None, **_):
+    def __init__(self, client: Any = None, timeout: Optional[int] = None, **_):
         """Initialize the backend."""
 
     def __init_subclass__(cls, *args, **kwargs):
@@ -28,35 +31,44 @@ class ABCBackend(abc.ABC):
     async def shutdown(self):
         """Close the backend."""
 
+    @overload
+    async def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        read_response_body: Literal[True] = True,
+        **options
+    ) -> TResponseBody:
+        ...
+
+    @overload
+    async def request(
+        self, method: str, url: str, *, read_response_body: Literal[False], **options
+    ) -> Any:
+        ...
+
     @abc.abstractmethod
     async def request(
         self,
         method: str,
         url: str,
         *,
-        raise_for_status: bool = True,
         read_response_body: bool = True,
+        raise_for_status: bool = True,
         parse_response_body: bool = True,
         **options
     ):
         """Do http request with the backend."""
 
 
-BACKENDS: t.Dict[str, t.Type[ABCBackend]] = {}
+BACKENDS: Dict[str, Type[ABCBackend]] = {}
 
 
-try:
+with suppress(ImportError):
     from ._httpx import BackendHTTPX
-    assert BackendHTTPX
 
-except ImportError:
-    pass
-
-try:
+with suppress(ImportError):
     from ._aiohttp import BackendAIOHTTP
-    assert BackendAIOHTTP
-
-except ImportError:
-    pass
 
 # pylama: ignore=W0611
