@@ -1,10 +1,17 @@
-from typing import Literal, Optional, Union, overload
+import sys
+from typing import Optional, overload
 
 import httpx
 
 from apiclient.types import TResponseBody
 
 from . import ABCBackend
+
+# Python 3.7 compatibility
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 
 class BackendHTTPX(ABCBackend):

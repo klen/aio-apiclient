@@ -1,9 +1,16 @@
 """Base abstract backend class."""
 import abc
+import sys
 from contextlib import suppress
-from typing import Any, Dict, Literal, Optional, Type, overload
+from typing import Any, Dict, Optional, Type, overload
 
 from apiclient.types import TResponseBody
+
+# Python 3.7 compatibility
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 
 class ABCBackend(abc.ABC):
