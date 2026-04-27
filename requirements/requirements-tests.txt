@@ -1,7 +1,7 @@
 aiohttp
 httpx
 pytest
-pytest-aio[curio,trio] >= 1.5.0
+pytest-aio[curio,trio] >= 2.1.7
 pytest-mypy
 types-setuptools
 
