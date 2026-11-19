@@ -31,6 +31,10 @@ version: install
 	git push origin develop main
 	git push --tags
 
+.PHONY: minor patch major
+minor patch major:
+	$(MAKE) version VERSION=$@
+
 .PHONY: clean
 # target: clean - Display callable targets
 clean:

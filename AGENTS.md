@@ -31,7 +31,7 @@ an optional extra (`aio-apiclient[httpx]`, `aio-apiclient[aiohttp]`). Python >= 
 
 ## High-risk commands
 
-- `make version [VERSION=…]` — bumps the version, **commits**, **tags**, checks out
+- `make version [VERSION=…]` (shortcuts: `make minor`, `make patch`, `make major`) — bumps the version, **commits**, **tags**, checks out
   `main`, pulls, merges `develop`, then pushes both branches and all tags. A pushed tag
   triggers `release.yml`, which publishes to PyPI. Never run without explicit instruction.
 - `git push`, `git push --tags`, `git tag` — same publish trigger; ask first. Never force-push.
