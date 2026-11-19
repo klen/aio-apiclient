@@ -8,7 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 - Packaging moved to `uv` and `pyproject.toml` (`setup.py`, `setup.cfg` and
   `requirements/` are gone, use `uv sync` / `uv run pytest`)
-- CI runs on `uv` across python 3.11–3.15
+- CI runs on `uv` across python 3.11–3.15; Slack notify jobs removed
 - `mypy` replaced with `pyrefly` for type checking; 100% type coverage is enforced
 - `pre-commit` with ruff (lint + format), pyrefly, pytest and basic hygiene hooks
 - Type annotations use python 3.11 syntax (`X | None`, builtin generics, `Self`)

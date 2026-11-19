@@ -25,8 +25,7 @@ an optional extra (`aio-apiclient[httpx]`, `aio-apiclient[aiohttp]`). Python >= 
   and pytest config. `uv.lock` is committed.
 - `Makefile` — `install` (`uv sync` + `pre-commit install`), `test`, `types`, `version`, `clean`.
 - `.github/workflows/tests.yml` (matrix 3.11–3.15) and `release.yml` (publishes on tag push).
-  Branches: `develop` for work, `main` for releases; actions pinned to `archive/github-actions-slack@master`
-  are upstream refs, not this repo's branch.
+  Branches: `develop` for work, `main` for releases. No notifications: CI only runs checks and publishes.
 - `CHANGELOG.md` — sections are `## <YYYY-MM-DD> · <version>`, newest first.
 - `.tox/` is leftover from the old tox setup; ignore it, it is not part of the build.
 
