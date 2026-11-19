@@ -23,13 +23,13 @@ VERSION	?= minor
 version: install
 	$(UV) version --bump $(VERSION)
 	git commit -am "build(version): $$($(UV) version --short)"
-	git tag "$$($(UV) version --short)"
 	git checkout main
 	git pull
 	git merge develop
 	git checkout develop
 	git push origin develop main
-	git push --tags
+	git tag "$$($(UV) version --short)"
+	git push origin "refs/tags/$$($(UV) version --short)"
 
 .PHONY: minor patch major
 minor patch major:
