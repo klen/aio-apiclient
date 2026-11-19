@@ -4,7 +4,7 @@ All notable changes to this project are documented here, newest first.
 Each entry is headed by the release date and the version it was released as.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2026-11-19 · Unreleased
+## 2026-11-19 · 2.0.0
 ### Changed
 - Packaging moved to `uv` and `pyproject.toml` (`setup.py`, `setup.cfg` and
   `requirements/` are gone, use `uv sync` / `uv run pytest`)

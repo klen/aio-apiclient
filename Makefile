@@ -22,8 +22,8 @@ VERSION	?= minor
 .PHONY: version
 version: install
 	$(UV) version --bump $(VERSION)
-	git commit -am "build(version): $$($(UV) version)"
-	git tag "$$($(UV) version)"
+	git commit -am "build(version): $$($(UV) version --short)"
+	git tag "$$($(UV) version --short)"
 	git checkout main
 	git pull
 	git merge develop
