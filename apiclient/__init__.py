@@ -1,20 +1,24 @@
 """APIClient Implementation."""
 
+from __future__ import annotations
+
 import copy
-from typing import Dict, List, Optional, Type, TypeVar, Union
+from collections.abc import Awaitable, Callable
+from importlib.metadata import version
+from typing import Any, Generic, TypeVar, cast
 from urllib.parse import urlparse
 
 from apiclient.api import HTTPDescriptor
 from apiclient.backends import BACKENDS, ABCBackend
-from apiclient.types import TMiddleware
+from apiclient.types import TMiddleware, TResponse
 
-__version__ = "1.7.0"
+__version__: str = version("aio-apiclient")
 __license__ = "MIT"
 
 TVMiddleware = TypeVar("TVMiddleware", bound=TMiddleware)
 
 
-class APIClient:
+class APIClient(Generic[TResponse]):
     """Work with any HTTP based API."""
 
     def __init__(
@@ -22,81 +26,84 @@ class APIClient:
         root: str,
         *,
         # Backends
-        backend_type: Optional[Union[str, Type[ABCBackend]]] = None,
-        backend_options: Optional[Dict] = None,
+        backend_type: str | type[ABCBackend] | None = None,
+        backend_options: dict[str, Any] | None = None,
         # Process responses
         raise_for_status: bool = True,
         read_response_body: bool = True,
         parse_response_body: bool = True,
         # Request params
-        timeout: int = 10,
-        uds: Optional[str] = None,
+        timeout: float = 10,
+        uds: str | None = None,
         # Default params
-        **defaults,
-    ):
-        """Initialize the client."""
+        **defaults: Any,
+    ) -> None:
+        """Initialize the client.
+
+        Any keyword not listed above is kept as a request default (headers, params, ...).
+        """
         url = urlparse(root)
         if url.scheme == "uds":
             uds = url.path
             root = "http://socket"
 
-        self.root = root.rstrip("/")
-        self.raise_for_status = raise_for_status
-        self.read_response_body = read_response_body
-        self.parse_response_body = parse_response_body
-        self.defaults = defaults
+        self.root: str = root.rstrip("/")
+        self.raise_for_status: bool = raise_for_status
+        self.read_response_body: bool = read_response_body
+        self.parse_response_body: bool = parse_response_body
+        self.defaults: dict[str, Any] = defaults
         if backend_type is None:
             if not BACKENDS:
-                raise RuntimeError(
-                    "Please install any apiclient supported backend (httpx|aiohttp)"
-                )
+                raise RuntimeError("Please install any apiclient supported backend (httpx|aiohttp)")
             backend_type, *_ = BACKENDS.values()
 
         elif isinstance(backend_type, str):
+            if backend_type not in BACKENDS:
+                raise RuntimeError(f"Backend {backend_type} is unknown or not installed")
             backend_type = BACKENDS[backend_type]
 
-        self.backend = backend_type(timeout=timeout, uds=uds, **(backend_options or {}))
-        self.middlewares: List[TMiddleware] = []
-        if not self.backend:
-            raise RuntimeError(
-                "httpx or aiohttp must be installed to use aio-apiclient"
-            )
+        self.backend: ABCBackend = backend_type(timeout=timeout, uds=uds, **(backend_options or {}))
+        self.middlewares: list[TMiddleware] = []
+        self.Error: type[Exception] = self.backend.Error
 
     def __repr__(self) -> str:
         """Represent the client."""
         return f"<APIClient {self.root}>"
 
-    async def startup(self, *_):
+    async def startup(self, *_: Any) -> None:
         """Startup the backend."""
         await self.backend.startup()
 
-    async def shutdown(self, *_):
+    async def shutdown(self, *_: Any) -> None:
         """Shutdown the backend."""
         await self.backend.shutdown()
 
     @property
-    def api(self) -> HTTPDescriptor:
+    def api(self) -> HTTPDescriptor[TResponse]:
         """Create API Descriptor."""
         return HTTPDescriptor(self.request)
 
-    @property
-    def Error(self) -> Type[Exception]:
-        """Create API Descriptor."""
-        return self.backend.Error
-
     def middleware(self, corofunc: TVMiddleware) -> TVMiddleware:
-        """Register the given middleware. Can be used as a decorator."""
-        self.middlewares.insert(0, corofunc)
+        """Register the given middleware. Can be used as a decorator.
+
+        Middlewares run in registration order.
+        """
+        self.middlewares.append(corofunc)
         return corofunc
 
-    async def request(self, method: str, url: str, **options):
-        """Prepare and do HTTP request."""
+    async def request(self, method: str, url: str, **options: Any) -> TResponse:
+        """Prepare and do HTTP request.
+
+        Defaults are copied into the options, then middlewares run in registration order,
+        then the backend sends the request.
+        """
         # Process defaults
         for opt, val in self.defaults.items():
             if opt not in options:
-                options[opt] = copy.copy(val)
-            elif isinstance(val, dict):
-                options[opt] = dict(self.defaults[opt], **options[opt])
+                # Defaults are copied so a request or a middleware cannot change them
+                options[opt] = copy.deepcopy(val) if isinstance(val, (dict, list)) else val
+            elif isinstance(val, dict) and isinstance(options[opt], dict):
+                options[opt] = dict(val, **options[opt])
 
         # Prepare URL
         if not url.startswith("http"):
@@ -108,17 +115,19 @@ class APIClient:
 
         return await self.__request(method, url, **options)
 
-    async def __request(
+    async def __request(  # noqa: PLR0913
         self,
         method: str,
         url: str,
-        read_response_body: Optional[bool] = None,
-        raise_for_status: Optional[bool] = None,
-        parse_response_body: Optional[bool] = None,
-        **options,
-    ):
+        read_response_body: bool | None = None,
+        raise_for_status: bool | None = None,
+        parse_response_body: bool | None = None,
+        **options: Any,
+    ) -> TResponse:
         """Do HTTP request."""
-        return await self.backend.request(  # type: ignore
+        # shortcut: the backend overloads are keyed on literal flags, these are runtime values
+        request = cast("Callable[..., Awaitable[Any]]", self.backend.request)
+        response = await request(
             method,
             url,
             read_response_body=self.read_response_body
@@ -132,3 +141,4 @@ class APIClient:
             else parse_response_body,
             **options,
         )
+        return cast("TResponse", response)

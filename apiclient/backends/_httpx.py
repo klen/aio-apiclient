@@ -1,17 +1,10 @@
-import sys
-from typing import Optional, overload
+from typing import Any, Literal, overload
 
 import httpx
 
 from apiclient.types import TResponseBody
 
 from . import ABCBackend
-
-# Python 3.7 compatibility
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
 
 
 class BackendHTTPX(ABCBackend):
@@ -22,18 +15,15 @@ class BackendHTTPX(ABCBackend):
     Error = httpx.HTTPError
 
     def __init__(
-        self,
-        client: Optional[httpx.AsyncClient] = None,
-        uds: Optional[str] = None,
-        **options
-    ):
+        self, client: httpx.AsyncClient | None = None, uds: str | None = None, **options: Any
+    ) -> None:
         """Initialize HTTPX Client."""
         if uds:
             options["transport"] = httpx.AsyncHTTPTransport(uds=uds)
 
-        self.client = client or httpx.AsyncClient(**options)
+        self.client: httpx.AsyncClient = client or httpx.AsyncClient(**options)
 
-    async def shutdown(self):
+    async def shutdown(self) -> None:
         """Shutdown the client."""
         await self.client.aclose()
 
@@ -44,15 +34,31 @@ class BackendHTTPX(ABCBackend):
         url: str,
         *,
         read_response_body: Literal[True] = True,
-        **options
-    ) -> TResponseBody:
-        ...
+        parse_response_body: Literal[True] = True,
+        **options: Any,
+    ) -> TResponseBody: ...
 
     @overload
     async def request(
-        self, method: str, url: str, *, read_response_body: Literal[False], **options
-    ) -> httpx.Response:
-        ...
+        self,
+        method: str,
+        url: str,
+        *,
+        read_response_body: Literal[True] = True,
+        parse_response_body: Literal[False],
+        **options: Any,
+    ) -> httpx.Response: ...
+
+    @overload
+    async def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        read_response_body: Literal[False],
+        parse_response_body: bool = True,
+        **options: Any,
+    ) -> httpx.Response: ...
 
     async def request(
         self,
@@ -62,9 +68,13 @@ class BackendHTTPX(ABCBackend):
         raise_for_status: bool = True,
         read_response_body: bool = True,
         parse_response_body: bool = True,
-        **options
-    ):
-        """Make a request."""
+        **options: Any,
+    ) -> TResponseBody | httpx.Response:
+        """Make a request.
+
+        The response returned with ``read_response_body=False`` is already closed,
+        so its body cannot be read.
+        """
         client = self.client
         async with client.stream(method, url, **options) as response:
             if raise_for_status:

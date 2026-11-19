@@ -1,16 +1,15 @@
-import sys
-from typing import Any, Awaitable, Callable, Dict, List, Tuple, Union
+from collections.abc import Awaitable, Callable
+from typing import Any, Protocol, TypeAlias, TypeVar
 
-# Python 3.7 compatibility
-if sys.version_info >= (3, 8):
-    from typing import Protocol
-else:
-    from typing_extensions import Protocol
+TResponse = TypeVar("TResponse")
+TResponse_co = TypeVar("TResponse_co", covariant=True)
 
-TResponseBody = Union[str, Dict, List, int, float, bool, None]
-TMiddleware = Callable[[str, str, Dict], Awaitable[Tuple[str, str, Dict]]]
+# Anything a backend may return after reading/parsing a response body
+TResponseBody: TypeAlias = dict[str, Any] | list[Any] | str | int | float | bool | None
+TMiddleware: TypeAlias = Callable[
+    [str, str, dict[str, Any]], Awaitable[tuple[str, str, dict[str, Any]]]
+]
 
 
-class TRequestFn(Protocol):
-    def __call__(self, method: str, url: str, **options: Any) -> Awaitable:
-        ...
+class TRequestFn(Protocol[TResponse_co]):
+    def __call__(self, method: str, url: str, **options: Any) -> Awaitable[TResponse_co]: ...

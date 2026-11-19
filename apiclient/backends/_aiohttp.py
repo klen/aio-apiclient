@@ -1,17 +1,12 @@
-import sys
 from contextlib import suppress
-from typing import Optional, overload
+from typing import Any, Literal, overload
 
 import aiohttp
+from aiohttp.client_exceptions import ClientError
 
-from ..types import TResponseBody
+from apiclient.types import TResponseBody
+
 from . import ABCBackend
-
-# Python 3.7 compatibility
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
 
 
 class BackendAIOHTTP(ABCBackend):
@@ -19,15 +14,15 @@ class BackendAIOHTTP(ABCBackend):
 
     name = "aiohttp"
 
-    Error = aiohttp.client_exceptions.ClientError
+    Error = ClientError
 
     def __init__(
         self,
-        client: Optional[aiohttp.ClientSession] = None,
-        timeout: Optional[int] = None,
-        uds: Optional[str] = None,
-        **options
-    ):
+        client: aiohttp.ClientSession | None = None,
+        timeout: float | None = None,
+        uds: str | None = None,
+        **options: Any,
+    ) -> None:
         """Initialize the client."""
         if timeout:
             options["timeout"] = aiohttp.ClientTimeout(total=timeout)
@@ -35,8 +30,8 @@ class BackendAIOHTTP(ABCBackend):
         if uds:
             options["connector"] = aiohttp.UnixConnector(path=uds)
 
-        self._client = client
-        self._options = options
+        self._client: aiohttp.ClientSession | None = client
+        self._options: dict[str, Any] = options
 
     @property
     def client(self) -> aiohttp.ClientSession:
@@ -45,7 +40,11 @@ class BackendAIOHTTP(ABCBackend):
             self._client = aiohttp.ClientSession(**self._options)
         return self._client
 
-    async def shutdown(self):
+    async def startup(self) -> None:
+        """Create the session inside the running event loop."""
+        _ = self.client
+
+    async def shutdown(self) -> None:
         """Close the client."""
         await self.client.close()
 
@@ -56,15 +55,31 @@ class BackendAIOHTTP(ABCBackend):
         url: str,
         *,
         read_response_body: Literal[True] = True,
-        **options
-    ) -> TResponseBody:
-        ...
+        parse_response_body: Literal[True] = True,
+        **options: Any,
+    ) -> TResponseBody: ...
 
     @overload
     async def request(
-        self, method: str, url: str, *, read_response_body: Literal[False], **options
-    ) -> aiohttp.ClientResponse:
-        ...
+        self,
+        method: str,
+        url: str,
+        *,
+        read_response_body: Literal[True] = True,
+        parse_response_body: Literal[False],
+        **options: Any,
+    ) -> aiohttp.ClientResponse: ...
+
+    @overload
+    async def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        read_response_body: Literal[False],
+        parse_response_body: bool = True,
+        **options: Any,
+    ) -> aiohttp.ClientResponse: ...
 
     async def request(
         self,
@@ -74,11 +89,14 @@ class BackendAIOHTTP(ABCBackend):
         raise_for_status: bool = True,
         read_response_body: bool = True,
         parse_response_body: bool = True,
-        **options
-    ):
-        """Make a request."""
-        async with self.client.request(method, url, **options) as response:
+        **options: Any,
+    ) -> TResponseBody | aiohttp.ClientResponse:
+        """Make a request.
 
+        The response returned with ``read_response_body=False`` is already closed,
+        so its body cannot be read.
+        """
+        async with self.client.request(method, url, **options) as response:
             if raise_for_status:
                 response.raise_for_status()
 
@@ -86,12 +104,15 @@ class BackendAIOHTTP(ABCBackend):
                 if parse_response_body:
                     return await self.parse_response(response)
 
+                # Keep the body readable on the returned response, like the httpx backend does
+                await response.read()
+
             else:
                 response.close()
 
             return response
 
-    async def parse_response(cls, response: aiohttp.ClientResponse) -> TResponseBody:
+    async def parse_response(self, response: aiohttp.ClientResponse) -> TResponseBody:
         """Parse body for given response by content-type.
 
         :returns: a coroutine
