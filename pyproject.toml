@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aio-apiclient"
+description = "Async helper to work with HTTP APIs"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">= 3.11"
+keywords = ["apiclient", "muffin", "asyncio", "trio", "curio"]
+authors = [{ name = "Kirill Klenov", email = "horneds@gmail.com" }]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Framework :: AsyncIO",
+    "Framework :: Trio",
+    "Typing :: Typed",
+]
+dependencies = []
+version = "1.7.0"
+
+[project.optional-dependencies]
+httpx = ["httpx >= 0.20.0"]
+aiohttp = ["aiohttp"]
+
+[project.urls]
+Documentation = "https://github.com/klen/aio-apiclient"
+"Source code" = "https://github.com/klen/aio-apiclient"
+"Issue tracker" = "https://github.com/klen/aio-apiclient/issues"
+
+[dependency-groups]
+dev = [
+    "aiohttp",
+    "httpx",
+    "pre-commit",
+    "pyrefly",
+    "pytest",
+    "pytest-aio[curio,trio] >= 1.5.0",
+    "ruff",
+]
+
+[tool.setuptools]
+packages = ["apiclient", "apiclient.backends"]
+
+[tool.setuptools.package-data]
+apiclient = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pyrefly]
+python_version = "3.11"
+strict-callable-subtyping = true
+strict-partial-subtyping = true
+
+[tool.pytest.ini_options]
+addopts = "-xsv"
+testpaths = ["tests.py"]

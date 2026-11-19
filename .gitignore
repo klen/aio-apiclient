@@ -1,3 +1,10 @@
 /build
 /dist
 /env
+.venv
+.tox
+.mypy_cache
+.pytest_cache
+__pycache__
+*.egg-info
+*.py[co]

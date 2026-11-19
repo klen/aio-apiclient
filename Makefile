@@ -1,45 +1,35 @@
-VIRTUAL_ENV ?= .venv
+UV ?= uv
 
-$(VIRTUAL_ENV): requirements/requirements-tests.txt
-	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pip install -e .[tests]
-	@touch $(VIRTUAL_ENV)
+.PHONY: install
+# target: install - Set up the environment and the git hooks
+i install:
+	$(UV) sync
+	$(UV) run pre-commit install
 
 .PHONY: test
 # target: test - Runs tests
-t test: $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pytest tests.py
+t test: install
+	@$(UV) run pytest
 
-.PHONY: mypy
-# target: mypy - Code checking
-mypy: $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/mypy apiclient
-
+.PHONY: types
+# target: types - Type checking
+types: install
+	@$(UV) run pyrefly check
+	@$(UV) run pyrefly coverage check
 
 VERSION	?= minor
 
 .PHONY: version
-version: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/pip install bump2version
-	$(VIRTUAL_ENV)/bin/bump2version $(VERSION)
-	git checkout master
+version: install
+	$(UV) version --bump $(VERSION)
+	git commit -am "build(version): $$($(UV) version)"
+	git tag "$$($(UV) version)"
+	git checkout main
 	git pull
 	git merge develop
 	git checkout develop
-	git push origin develop master
+	git push origin develop main
 	git push --tags
-
-.PHONY: minor
-minor:
-	make version VERSION=minor
-
-.PHONY: patch
-patch:
-	make version VERSION=patch
-
-.PHONY: major
-major:
-	make version VERSION=major
 
 .PHONY: clean
 # target: clean - Display callable targets

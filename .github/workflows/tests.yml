@@ -1,39 +1,70 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
 name: tests
 
 on:
   pull_request:
-    branches: [master, develop]
+    branches: [main, develop]
 
   push:
-    branches: [master, develop]
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.11', '3.12', '3.13', '3.14', '3.15']
 
     steps:
     - name: Checkout changes
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@main
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
       with:
         python-version: ${{ matrix.python-version }}
-        cache: pip
-        cache-dependency-path: '**/requirements-tests.txt'
+        enable-cache: true
 
-    - name: Install dependencies
-      run: pip install .[tests]
+    - name: Check lockfile
+      run: uv lock --check
 
     - name: Test with pytest
-      run: pytest tests.py
+      run: uv run pytest tests.py
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: Checkout changes
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+
+    - name: Check lockfile
+      run: uv lock --check
+
+    - name: Lint
+      run: uv run ruff check --output-format=github .
+
+    - name: Check formatting
+      run: uv run ruff format --check .
+
+    - name: Type check
+      run: uv run pyrefly check
+
+    - name: Check type coverage
+      run: uv run pyrefly coverage check
 
   notify:
     runs-on: ubuntu-latest
@@ -48,4 +79,3 @@ jobs:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
           slack-optional-as_user: false
           slack-optional-icon_emoji: ":white_check_mark:"
-
